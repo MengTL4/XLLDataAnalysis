@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学期报告</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .background {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: url('img.png') center/cover fixed no-repeat;
+            opacity: 0.6; /* Adjust the opacity of the background image */
+            z-index: -1;
+        }
+
+        .charts-container {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .chart-container,
+        .table-container {
+            width: 48%;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        #result,
+        #result2,
+        #result3,
+        #result4,
+        #result5 {
+            /*font-weight: bold;*/
+            text-align: center;
+        }
+
+    </style>
+</head>
+<body>
+<div class="background"></div>
+<!-- 柱状图 -->
+<div class="charts-container">
+    <div class="chart-container">
+        <canvas id="barChart" width="400" height="200"></canvas>
+    </div>
+
+    <!-- 折线图 -->
+    <div class="chart-container">
+        <canvas id="lineChart" width="400" height="200"></canvas>
+    </div>
+
+    <div class="chart-container">
+        <canvas id="barChart2" width="400" height="200"></canvas>
+    </div>
+</div>
+<div class="charts-container">
+    <div class="table-container">
+        <table id="myTable">
+            <thead>
+            <tr>
+                <th>餐厅名称</th>
+                <th>最早时间</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- 表格内容将通过 JavaScript 动态生成 -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-container">
+        <table id="myTable2">
+            <thead>
+            <tr>
+                <th>餐厅名称</th>
+                <th>最晚时间</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- 表格内容将通过 JavaScript 动态生成 -->
+            </tbody>
+        </table>
+    </div>
+</div>
+<p id="result">等待获取数据...</p>
+<p id="result2">等待获取数据...</p>
+<p id="result5">朋友，你好像总是忙于其他事情呢，早饭和午饭可不能忘记吃了哦！</p>
+<p id="result3">等待获取数据...</p>
+<p id="result4">等待获取数据...</p>
+<script>
+    // 获取柱状图数据并创建柱状图
+    fetch('/term_frequency').then(response => response.json())
+        .then(barChartData => {
+            const ctxBar = document.getElementById('barChart').getContext('2d');
+            new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: barChartData.resmonth,
+                    datasets: [{
+                        label: '本学期消费次数',
+                        data: barChartData.amt,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        });
+
+    // 获取折线图数据并创建折线图
+    fetch('/term_pay').then(response => response.json())
+        .then(lineChartData => {
+            const ctxLine = document.getElementById('lineChart').getContext('2d');
+            new Chart(ctxLine, {
+                type: 'line',
+                data: {
+                    labels: lineChartData.resmonth,
+                    datasets: [{
+                        label: '本学期消费金额',
+                        data: lineChartData.amt,
+                        fill: false,
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        });
+    fetch('/total_frequency').then(response => response.json())
+        .then(barChartData => {
+            const ctxBar = document.getElementById('barChart2').getContext('2d');
+            new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: barChartData.MERCNAME,
+                    datasets: [{
+                        label: '总消费次数',
+                        data: barChartData.frequency,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        });
+    fetch('/time_early')
+        .then(response => response.json())
+        .then(responseData => {
+            // 获取表格
+            const table = document.getElementById("myTable");
+
+            // 获取表格的 tbody 部分
+            const tbody = table.getElementsByTagName("tbody")[0];
+
+            // 遍历数据并插入表格行
+            for (let i = 0; i < responseData.mercName.length; i++) {
+                // 创建新行
+                const row = tbody.insertRow(i);
+
+                // 创建单元格并填充数据
+                const cell1 = row.insertCell(0);
+                const cell2 = row.insertCell(1);
+
+                cell1.innerHTML = responseData.mercName[i];
+                cell2.innerHTML = responseData.earliestTime[i];
+            }
+        })
+        .catch(error => console.error('Error fetching data:', error));
+    fetch('/time_latest')
+        .then(response => response.json())
+        .then(responseData => {
+            // 获取表格
+            const table = document.getElementById("myTable2");
+
+            // 获取表格的 tbody 部分
+            const tbody = table.getElementsByTagName("tbody")[0];
+
+            // 遍历数据并插入表格行
+            for (let i = 0; i < responseData.mercName.length; i++) {
+                // 创建新行
+                const row = tbody.insertRow(i);
+
+                // 创建单元格并填充数据
+                const cell1 = row.insertCell(0);
+                const cell2 = row.insertCell(1);
+
+                cell1.innerHTML = responseData.mercName[i];
+                cell2.innerHTML = responseData.latestTime[i];
+            }
+        })
+        .catch(error => console.error('Error fetching data:', error));
+    fetch('/launch_three')
+        .then(response => response.json())
+        .then(integerValue => {
+            // 获取显示结果的元素
+            const resultElement = document.getElementById('result');
+
+            // 将整数值显示在网页上
+            resultElement.textContent = `本学期你未按时吃早饭${integerValue}次`;
+        })
+        .catch(error => console.error('Error fetching data:', error));
+    fetch('/launch_two')
+        .then(response => response.json())
+        .then(integerValue => {
+            // 获取显示结果的元素
+            const resultElement = document.getElementById('result2');
+
+            // 将整数值显示在网页上
+            resultElement.textContent = `本学期你未按时吃中饭${integerValue}次`;
+        })
+        .catch(error => console.error('Error fetching data:', error));
+    fetch('/term_frequency')
+        .then(response => response.json())
+        .then(integerValue => {
+            var x = integerValue.resmonth[1]
+            var y = integerValue.amt[1]
+            // 获取显示结果的元素
+            const resultElement = document.getElementById('result3');
+
+            // 将整数值显示在网页上
+            resultElement.textContent = `本学期你在${x}消费次数最多，共消费${y}次，看起来你更喜欢这个地方呢，它或许对你来说有一段非凡的记忆？`;
+        })
+        .catch(error => console.error('Error fetching data:', error));
+    fetch('/term_pay')
+        .then(response => response.json())
+        .then(integerValue => {
+            var x = integerValue.resmonth[0]
+            var y = integerValue.amt[0]
+            // 获取显示结果的元素
+            const resultElement = document.getElementById('result4');
+
+            // 将整数值显示在网页上
+            resultElement.textContent = `本学期你在${x}消费金额最多，共消费${y}元，我去，竟然这么多！`;
+        })
+        .catch(error => console.error('Error fetching data:', error));
+</script>
+</body>
+</html>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>选择楼栋</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .background {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      background: url('img.png') center/cover fixed no-repeat;
+      opacity: 0.6; /* Adjust the opacity of the background image */
+      z-index: -1;
+    }
+
+    label, input, button {
+      margin: 10px;
+    }
+
+    select, input, button {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    button {
+      background-color: #555;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #555;
+    }
+
+    #result {
+      margin-top: 20px;
+      font-size: 18px;
+      color: black;
+    }
+  </style>
+</head>
+<body>
+  <div class="background"></div>
+  <label for="buildingSelect">选择楼栋：</label>
+  <select id="buildingSelect" onchange="updateRoomInfo()">
+    <option value="">选择一个楼栋</option>
+    <!-- 使用JavaScript动态添加选项 -->
+  </select>
+
+  <label for="roomInput">输入房间号：</label>
+  <input type="text" id="roomInput" placeholder="输入房间号">
+
+  <button onclick="sendDataToBackend()">提交</button>
+  <p id="result">等待获取数据...</p>
+  <script>
+    // 您的JSON数据
+    const buildingData = [
+      {
+        aid: "0030000000009401",
+        account: "1",
+        area: {
+          area: "1",
+          areaname: "无锡国际校区"
+        },
+        buildingtab: [
+		  { buildingid: "A1", building: "桃园壹號A1" },
+		  { "buildingid":"A2", "building":"桃园贰號A2" },
+		  { "buildingid":"A3", "building":"桃园叁號A3" },
+		  { "buildingid":"A4", "building":"桃园肆號A4" },
+		  { "buildingid":"A5", "building":"李园壹號A5" },
+		  { "buildingid":"A6", "building":"李园叄号A6" },
+		  { "buildingid":"A7", "building":"李园贰號A7" },
+		  { "buildingid":"A8", "building":"李园肆号A8" },
+		  { "buildingid":"A9", "building":"李园伍号A9" },
+		  { "buildingid":"A10", "building":"李园陆号A10" },
+		  { "buildingid":"A11", "building":"李园柒号A11" },
+		  { "buildingid":"A12", "building":"李园捌号A12" },
+        ]
+      },
+      {
+        aid: "0030000000013000",
+        account: "1",
+        area: {
+          area: "1",
+          areaname: "无锡学院"
+        },
+        buildingtab: [
+		{ "buildingid":"12460", "building":"李九" },
+        { "buildingid": "13276", "building": "李十" },
+		{ "buildingid":"12868", "building":"李十一" }
+        ]
+      }
+    ];
+
+    // 根据选择的楼栋更新房间信息JSON的函数
+    function updateRoomInfo() {
+      const buildingSelect = document.getElementById("buildingSelect");
+      const selectedBuilding = buildingSelect.value;
+      const roomInput = document.getElementById("roomInput");
+      const roomNumber = roomInput.value;
+
+      // 查找相应楼栋数据
+      const selectedBuildingData = buildingData.find(building => building.buildingtab.some(b => b.buildingid === selectedBuilding));
+
+      // 构造房间信息JSON
+      return {
+        query_elec_roominfo: {
+          aid: selectedBuildingData.aid,
+          account: selectedBuildingData.account,
+          room: {
+            roomid: roomNumber,
+            room: roomNumber
+          },
+          floor: {
+            floorid: "",
+            floor: ""
+          },
+          area: selectedBuildingData.area,
+          building: selectedBuildingData.buildingtab.find(b => b.buildingid === selectedBuilding)
+        }
+      }
+    }
+
+    // 模拟将数据发送到后端的函数
+    function sendDataToBackend() {
+      // 获取房间信息
+      const roomInfo = updateRoomInfo();
+
+      // 创建 FormData 对象
+      const formData = new FormData();
+
+      // 将房间信息添加到 FormData 中
+      formData.append("jsondata", JSON.stringify(roomInfo));
+
+      // 发送 POST 请求
+      fetch("/buildingelec", {
+        method: "POST",
+        body: formData,
+      })
+              .then((response) => response.json())
+              .then((data) => {
+                const errmsg = data?.query_elec_roominfo?.errmsg;
+                const resultElement = document.getElementById('result');
+
+                // 将整数值显示在网页上
+                resultElement.textContent = `${errmsg}`;
+                // 处理从后端返回的数据
+                // console.log("Response from backend:", data);
+                // alert("数据已发送到后端！");
+              })
+              .catch((error) => {
+                alert(error);
+              });
+    }
+
+    // 在下拉框中填充楼栋选项
+    const buildingSelect = document.getElementById("buildingSelect");
+    buildingData.forEach(buildingGroup => {
+      buildingGroup.buildingtab.forEach(building => {
+        const option = document.createElement("option");
+        option.value = building.buildingid;
+        option.text = building.building;
+        buildingSelect.appendChild(option);
+      });
+    });
+  </script>
+
+</body>
+</html>
