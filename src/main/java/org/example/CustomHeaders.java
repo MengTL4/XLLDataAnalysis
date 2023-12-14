@@ -14,7 +14,7 @@ public class CustomHeaders {
         headers.put("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
         headers.put("Accept-Encoding", "gzip, deflate, br");
         headers.put("Accept-Language", "zh,zh-CN;q=0.9,en-US;q=0.8,en;q=0.7");
-        headers.put("Cookie", "ASP.NET_Sessionld=ot4jyezvd54mx1zcjk1x3ihk;pageToken=25ce9ef7b7837c63e11d1dc5c9b3e7e396f27e5b9409913d8bad10292d41842f;imeiticket=6a742faaf4bdcda146da79a4abe59c7c;sourcetypeticket=7893EA6A3FD54637A64C8B908F2BEABA");
+        headers.put("Cookie", "xxx");
         return headers;
     }
 }
